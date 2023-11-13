@@ -6,7 +6,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
 } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput, Button, useTheme } from "react-native-paper";
 import { object, string, ref } from 'yup';
 
 //image imports
@@ -32,6 +32,7 @@ let userSchema = object({
 });
 
 export default function SignUp({ navigation }) {
+  const theme = useTheme();
   //setting the user information
   const [userInfo, setUserInfo] = useState({
     username: "",
@@ -59,7 +60,7 @@ export default function SignUp({ navigation }) {
 
   return (
     <KeyboardAvoidingView behavior="height" enabled>
-      <View style={styles.container}>
+      <View style={[styles.container, {backgroundColor: theme.colors.backgroundColor}]}>
         <Image source={logo} style={styles.logoImage} />
         <Text style={{ fontSize: 25, fontWeight: "bold", margin: 20 }}>
           Sign Up
@@ -150,16 +151,16 @@ export default function SignUp({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     height: "100%",
-    width: "100%",
-    backgroundColor: "white",
+    // width: "100%",
+    // backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "black",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.5,
+    // shadowRadius: 3,
     // Shadow properties for Android
-    elevation: 5,
+    // elevation: 5,
   },
   logoImage: {
     width: 80,
