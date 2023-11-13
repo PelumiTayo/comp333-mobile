@@ -5,12 +5,12 @@ import {
   StyleSheet,
 } from "react-native";
 import LandingImage from "../assets/LandingImage.jpg";
-import { Button } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 
-export default function SignUp({ navigation }) {
-
+export default function Landing({ navigation }) {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.colors.backgroundColor}]}>
       <Image
         style={{
           width: "95%",
@@ -37,14 +37,14 @@ export default function SignUp({ navigation }) {
         <Button
           style={{ margin: 5, flex: 1 }}
           mode="contained"
-          onPress={() => navigation.navigate("SignUp")}
+          onPress={() => navigation.navigate("Register")}
         >
           <Text style={{ color: "white", fontWeight: "bold" }}>Register</Text>
         </Button>
         <Button
           style={{ margin: 5, flex: 1 }}
           mode="outlined"
-          onPress={() => null}
+          onPress={() => navigation.navigate("Login")}
         >
           <Text style={{ fontWeight: "bold" }}>Login</Text>
         </Button>
@@ -56,15 +56,15 @@ export default function SignUp({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     height: "100%",
-    width: "100%",
-    backgroundColor: "white",
+    // width: "100%",
+    // backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "black",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.5,
+    // shadowRadius: 3,
     // Shadow properties for Android
-    elevation: 5,
+    // elevation: 5,
   },
 });
