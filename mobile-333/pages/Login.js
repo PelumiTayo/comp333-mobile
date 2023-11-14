@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import { Text, View, KeyboardAvoidingView } from "react-native";
+import {
+  Text,
+  View,
+  KeyboardAvoidingView,
+  Image,
+  StyleSheet,
+} from "react-native";
 import { Button, TextInput, useTheme } from "react-native-paper";
 import { object, string } from "yup";
 
+import logo from "../assets/logo.png";
+import apiClient from '../services/apiClient'
 let userSchema = object({
-  username:
-    string().
-    required("username is required").
-    label("username"),
-  password:
-    string().
-    required("password is required").
-    label("password")
+  username: string().required("username is required").label("username"),
+  password: string().required("password is required").label("password"),
 });
 
 export default function Login({ navigation }) {
@@ -20,13 +22,25 @@ export default function Login({ navigation }) {
   const [errors, setErrors] = useState({});
   const [hidePassword, setHidePassword] = useState(true);
 
-  async function onSubmit () {
+  async function onSubmit() {
     setErrors({});
     try {
       result = await userSchema.validate(userInfo, { abortEarly: false });
-      // TODO: send userInfo to backend.
+      const formData = new FormData();
+
+      formData.append("username", userInfo.username);
+      formData.append("password", userInfo.password);
+      const { data } = await apiClient.login(formData);
+      //successfully inputted into the DB
+      if (data === 1) {
+        navigation.navigate("Ratings");
+      }
+      else{
+        const field = "password";
+        setErrors((prev) => ({ ...prev, [field]: "Incorrect Username/Password" }));
+      }
     } catch (err) {
-      for (e of err.inner){
+      for (e of err.inner) {
         let field = e.path;
         let errmsg = e.errors[0];
         setErrors((prev) => ({ ...prev, [field]: errmsg }));
@@ -45,6 +59,7 @@ export default function Login({ navigation }) {
       behavior="height"
       enabled
     >
+      <Image source={logo} style={styles.logoImage} />
       <View style={{ width: "80%" }}>
         <Text
           style={{
@@ -75,7 +90,7 @@ export default function Login({ navigation }) {
           value={userInfo.username}
           error={errors.username}
         />
-        <Text style={{ color: "red", textAlign: "right" }}>
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
           {errors.username ? errors.username : ""}
         </Text>
         <TextInput
@@ -97,7 +112,7 @@ export default function Login({ navigation }) {
           value={userInfo.password}
           error={errors.password}
         />
-        <Text style={{ color: "red", textAlign: "right" }}>
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
           {errors.password ? errors.password : ""}
         </Text>
         <Button style={{ width: "50%" }} mode="contained" onPress={onSubmit}>
@@ -107,3 +122,10 @@ export default function Login({ navigation }) {
     </KeyboardAvoidingView>
   );
 }
+const styles = StyleSheet.create({
+  logoImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+  },
+});

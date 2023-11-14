@@ -8,6 +8,7 @@ import { MD3LightTheme as DefaultTheme, PaperProvider, adaptNavigationTheme } fr
 import SignUp from "./pages/SignUp";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Ratings from "./pages/Ratings";
 
 //routing is done using the stack data structure
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,8 @@ export default function App() {
           <Stack.Screen name="Landing" component={Landing} />
           <Stack.Screen name="Register" component={SignUp} />
           <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Ratings" component={Ratings} />
+
         </Stack.Navigator>
         <StatusBar style="auto"/>
       </NavigationContainer>
