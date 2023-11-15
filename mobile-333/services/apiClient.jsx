@@ -3,7 +3,7 @@ import axios from "axios";
 
 class ApiClient {
   constructor(remoteHostUrl) {
-    this.remoteHostUrl = "http://172.21.1.101";
+    this.remoteHostUrl = remoteHostUrl;
   }
 
   async request({ endpoint, method, data = {} }) {
@@ -78,6 +78,6 @@ class ApiClient {
     });
   }
 }
-const apiClientInstance = new ApiClient("http://172.21.1.101");
+const apiClientInstance = new ApiClient("http://10.0.0.4");
 
 export default apiClientInstance;
