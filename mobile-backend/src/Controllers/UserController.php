@@ -2,9 +2,13 @@
 
 namespace src\Controllers;
 require 'BaseController.php';
+require_once $_SERVER['DOCUMENT_ROOT']. '/vendor/autoload.php';
 require $_SERVER['DOCUMENT_ROOT'].'/src/Models/UserModel.php';
 
+use Dotenv\Dotenv;
 use src\Models\UserModel;
+use Firebase\JWT\JWT;
+
 class UserController extends BaseController
 {
     public function __construct()
@@ -19,15 +23,20 @@ class UserController extends BaseController
      * @return bool
      */
     function create($request): bool {
+        Dotenv::createImmutable($_SERVER['DOCUMENT_ROOT'])->load();
         $username_request = array('username'=>$request['username']);
         $password_request = $request['password'];
         try {
             $rows = $this->model->retrieve($username_request);
             $user_result = $rows[0];
             if (count($rows) > 0) {
+                $user_username = $user_result[0];
                 $user_password = $user_result[1];
                 if (password_verify($password_request, $user_password)) {
-                    echo true;
+                    // TODO: Encode username, password and send
+                    $payload = array( 'username'=>$user_username, 'password'=>$user_password, 'key' => $_ENV['JWT_KEY']);
+                    $jwt = JWT::encode($payload, $_ENV['JWT_KEY'], 'HS256');
+                    echo $jwt;
                     return true;
                 } else {
                     echo false;

@@ -1,2 +1,4 @@
 tests
-/vendor
+vendor/
+.env
+.idea/

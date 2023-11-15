@@ -31,15 +31,17 @@ class Route
     {
         return $this->target;
     }
+
     /**
      * Routes inbound url request to the mapped uri -> target file
      * target destination should be written with a leading backslash('/').
      *
      * @param string $uri The uri to map to a target destination
      * @param string $target directory to a file or a callback function
+     * @param string[] $middleware array of middlewares
      * @return Route|null
      */
-    public static function add(string $uri, string $target): ?Route
+    public static function add(string $uri, string $target, array $middleware=[]): ?Route
     {
         $callback = $target;
         $route = new Route($uri, $target);
@@ -113,9 +115,12 @@ class Route
             }
         }
 
-        if (is_callable($callback)) { # callback provided instead so call
+        if (is_callable($callback)) { # callback provided instead so call function
             call_user_func_array($callback, $parameters);
             return null;
+        }
+        foreach ($middleware as $mw) {
+            include_once $_SERVER["DOCUMENT_ROOT"]. "/routes/middleware/"."$mw.php";
         }
         include_once $_SERVER["DOCUMENT_ROOT"]."/routes/"."$target";
         return $route;
@@ -123,7 +128,7 @@ class Route
 
     /**
      * Adds a middleware file to the route
-     * middleware files should be placed in '/middleware'
+     * middleware files should be placed in ./routes/middleware
      *
      * @param array|string|null $middleware file name for middleware - should be written without '.php' extension
      * @return void
