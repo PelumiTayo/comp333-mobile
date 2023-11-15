@@ -6,11 +6,13 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { Button, TextInput, useTheme } from "react-native-paper";
+import { ActivityIndicator, Button, TextInput, useTheme } from "react-native-paper";
 import { object, string } from "yup";
+import * as SecureStore from "expo-secure-store";
 
 import logo from "../assets/logo.png";
 import apiClient from '../services/apiClient'
+
 let userSchema = object({
   username: string().required("username is required").label("username"),
   password: string().required("password is required").label("password"),
@@ -21,9 +23,11 @@ export default function Login({ navigation }) {
   const [userInfo, setUserInfo] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState({});
   const [hidePassword, setHidePassword] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit() {
     setErrors({});
+    setIsLoading(true);
     try {
       result = await userSchema.validate(userInfo, { abortEarly: false });
       const formData = new FormData();
@@ -32,7 +36,9 @@ export default function Login({ navigation }) {
       formData.append("password", userInfo.password);
       const { data } = await apiClient.login(formData);
       //successfully inputted into the DB
-      if (data === 1) {
+      if (data) {
+        await SecureStore.setItemAsync("token", data);
+        const token = await SecureStore.getItemAsync("token");
         navigation.navigate("Ratings");
       }
       else{
@@ -46,6 +52,7 @@ export default function Login({ navigation }) {
         setErrors((prev) => ({ ...prev, [field]: errmsg }));
       }
     }
+    setIsLoading(false);
   }
 
   return (
@@ -77,6 +84,7 @@ export default function Login({ navigation }) {
         style={{
           width: "80%",
           marginTop: "10%",
+          marginBottom: "10%",
           alignItems: "flex-end",
         }}
       >
@@ -115,7 +123,13 @@ export default function Login({ navigation }) {
         <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
           {errors.password ? errors.password : ""}
         </Text>
-        <Button style={{ width: "50%" }} mode="contained" onPress={onSubmit}>
+        <Button
+          loading={isLoading}
+          style={{ width: "50%" }}
+          mode="contained"
+          disabled={isLoading}
+          onPress={onSubmit}
+        >
           Sign in
         </Button>
       </View>
