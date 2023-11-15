@@ -2,6 +2,12 @@
 
 [< Back to main README](../README.md)
 
+A detailed documentation for the Backend API.
+
+📆 *Last Updated: Nov 14, 2023*
+
+Updated Features: [JWT authentication](#jwt-authentication), [dotenv support](#dotenv-support)
+
 ## Class structure
 
 The three classes are responsible for the core functionalities of the backend API
@@ -16,9 +22,13 @@ This readme will outline the usage of each class.
 
 This class is responsible for handling http requests sent through various uris.
 ```PHP
-Route::add($uri, $target)
+Route::add($uri, $target, $middleware)
 ```
-is a static method which compares the `$_SERVER['REQUEST_URI]` with the `$uri` variable and `include_once $target` file. In the `$target` file, is a `case switch` statement which handles different kinds of `$_SERVER['REQUEST_METHOD]`. The routing algorithm was adapted from an open source repository[link](https://github.com/phprouter/main).
+is a static method which compares the `$_SERVER['REQUEST_URI']` with the `$uri` variable and runs `include_once $target` file. In the `$target` file, there is a `case switch` statement which handles different kinds of `$_SERVER['REQUEST_METHOD]`. 
+
+> Changes: `$middleware` an array input with middleware files in `/routes/middleware` which runs before the main `$target` file.
+
+The routing algorithm was adapted from an open source repository [link](https://github.com/phprouter/main).
   
 ### Model Class
 
@@ -61,7 +71,7 @@ DELETE FROM [table] WHERE [request_values]
 
 ### Controller Class
 
-The `Controller` class is paired with a `Model` class to do appropriate operations on a request body and perform CRUD operations through the `Model` class. Using the `RatingController` class as an example,
+The `Controller` class is paired with a `Model` class to perform appropriate operations on a request body and perform CRUD operations through the `Model` class. Using the `RatingController` class as an example,
 ```PHP
 function show() {
     if ($key != null) {
@@ -75,6 +85,18 @@ function show() {
 }
 ```
 calling `$this->model->retrieve()` will retrieve all ratings the database.
+
+## JWT authentication
+
+The backend API has been extended to authenticate users based on JSON web tokens. The `auth.php` file in `routes/middleware` will check if the request has been supplied with a token and, if a token is present, will decode and match a passphrase to verify the validity of the token. To supply a user with a JWT, logging in will return a JWT. On the application scope, the `/rating` route is currently protected by JWT.
+
+Currently, this feature is very elementary and is prone to exploitation.
+- A JWT is supposed to have a short timestamp due to security reasons - since JWT are not tracked, there is no way to recall a stolen JWT. For simplicity reasons, the current API does not support timestamps.
+- Also for simplicity reasons, the key to encode the JWT has been used as the passphrase to validate tokens. This is **EXTREMELY** bad practice and should never be done in a real application.
+
+## dotenv support
+
+dotenv files facilitate the changing of environment variables for the project. The [`.env.example`](./.env.example) file has the template for the environment variables used in the application.
 
 ## Database Structure
 
@@ -110,7 +132,7 @@ $DB_SOCKET = ;
 ```
 These values should be set according to the MySQL database in use for deployment.
 
-### Database tables
+### Database table creation
 For `user_table`,
 ```SQL
 CREATE TABLE user_table (username VARCHAR(255), password VARCHAR(255), PRIMARY KEY(username));
