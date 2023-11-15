@@ -9,6 +9,7 @@ class ApiClient {
   async request({ endpoint, method, data = {} }) {
     //setting up the url and method
     const url = `${this.remoteHostUrl}/${endpoint}`;
+    console.log(url)
     console.debug("API Call:", endpoint, data, method);
     const params = method === "GET" ? data : {};
     const headers =
@@ -22,6 +23,7 @@ class ApiClient {
       const res = await axios({ url, method, data, params, headers });
       return { data: res.data, error: res.error, status: res.status };
     } catch (error) {
+      console.log(error)
       console.error("APIclient.makeRequest.error", error.response);
       if (error?.response?.status === 404)
         return { data: null, error: "Not found" };
@@ -78,6 +80,6 @@ class ApiClient {
     });
   }
 }
-const apiClientInstance = new ApiClient("http://10.0.0.4");
+const apiClientInstance = new ApiClient("http://172.21.1.101");
 
 export default apiClientInstance;

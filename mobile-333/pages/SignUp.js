@@ -58,10 +58,10 @@ export default function SignUp({ navigation }) {
       formData.append("password", userInfo.password);
 
       const { data } = await apiClient.register(formData);
-      console.log(data)
+      console.log(data, "data in register")
       //successfully inputted into the DB
-      if (data === 1) {
-        conso
+      if (data) {
+        await SecureStore.setItemAsync("token", data);
         navigation.navigate("Ratings");
       }
       else{

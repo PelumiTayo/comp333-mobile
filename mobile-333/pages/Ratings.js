@@ -1,16 +1,23 @@
 import React from "react";
 import { View, Image, ScrollView, Dimensions } from "react-native";
-import { Button, Card, Text, useTheme, Banner, Dialog } from "react-native-paper";
+import { Button, Card, Text, useTheme, Banner } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
+
+import jwtDecode from "jwt-decode";
 
 import image from "../assets/thebandshow.png";
 import bandTorso from "../assets/thebandtorso.png";
 import apiClient from "../services/apiClient";
 
+//true if user is on Ratings screem, false if not.
+import { useIsFocused } from "@react-navigation/native";
+
 export default function Ratings({ navigation }) {
   const theme = useTheme();
+  const isFocused = useIsFocused();
   const [totalRatings, setTotalRatings] = React.useState([]);
   const [visibleView, setVisibleView] = React.useState(false);
+  const [username, setUsername] = React.useState("");
   const [viewValues, setViewValues] = React.useState({
     id: 0,
     artist: "",
@@ -23,40 +30,28 @@ export default function Ratings({ navigation }) {
   React.useEffect(() => {
     async function fetchRatings() {
       try {
-        const jwt_token = await SecureStore.getItemAsync("jwt_token");
-        const { data } = await apiClient.ratingG({token:jwt_token});
+        const jwt_token = await SecureStore.getItemAsync("token");
+        const { data } = await apiClient.ratingG({ token: jwt_token });
         setTotalRatings(data);
       } catch (error) {
         console.error("Error fetching ratings:", error);
       }
     }
     fetchRatings();
-  }, []);
 
-  // TODO: Prevent users from going back to the home screen
-  //  React.useEffect(
-  //    () =>
-  //      navigation.addListener("beforeRemove", (e) => {
-  //        // Prevent default behavior of leaving the screen
-  //        e.preventDefault();
-
-  //        // Prompt the user before leaving the screen
-  //        Alert.alert(
-  //          "Logout?",
-  //          [
-  //            { text: "Don't leave", style: "cancel", onPress: () => {} },
-  //            {
-  //              text: "Discard",
-  //              style: "destructive",
-  //              // If the user confirmed, then we dispatch the action we blocked earlier
-  //              // This will continue the action that had triggered the removal of the screen
-  //              onPress: () => navigation.dispatch(e.data.action),
-  //            },
-  //          ]
-  //        );
-  //      }),
-  //    [navigation]
-  //  );
+    async function fetchUsername() {
+      try {
+        const jwt_token = await SecureStore.getItemAsync("token");
+        if (jwt_token) {
+          const decodedToken = jwtDecode(jwt_token);
+          setUsername(decodedToken.username);
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+    fetchUsername();
+  }, [isFocused === true]);
 
   return (
     <ScrollView>
@@ -70,18 +65,30 @@ export default function Ratings({ navigation }) {
           style={{
             fontSize: 30,
             fontWeight: "bold",
+            padding: 10,
             position: "absolute",
             zIndex: 1,
             justifyContent: "center",
           }}
         >
-          Sonic<Text style={{ color: "purple" }}>Score</Text>
+          Welcome <Text style={{ color: "purple" }}>{username}</Text>
         </Text>
         <Card style={{ backgroundColor: "#A6B9FF", position: "fixed" }}>
           <Card.Content>
             <Image source={image} />
           </Card.Content>
         </Card>
+        <Button
+          style={{
+            backgroundColor: "#A6B9FF",
+            margin: 10,
+            width: "50%",
+            alignSelf: "center",
+          }}
+          onPress={() => navigation.navigate("AddRating")}
+        >
+          Add a Rating!
+        </Button>
         {visibleView ? (
           <View style={{ alignItems: "center" }}>
             <Card
@@ -94,63 +101,95 @@ export default function Ratings({ navigation }) {
               }}
             >
               <Card.Content>
-                <Text style={{ color: "white", fontSize: 18 }}>ID: {viewValues.id}</Text>
-                <Text style={{ color: "white", fontSize: 18 }}>User: {viewValues.username}</Text>
-                <Text style={{ color: "white", fontSize: 18 }}>Artist: {viewValues.artist}</Text>
-                <Text style={{ color: "white", fontSize: 18 }}>Song: {viewValues.title}</Text>
-                <Text style={{ color: "white", fontSize: 18 }}>Rating: {viewValues.rating}</Text>
+                <Text style={{ color: "white", fontSize: 18 }}>
+                  ID: {viewValues.id}
+                </Text>
+                <Text style={{ color: "white", fontSize: 18 }}>
+                  User: {viewValues.username}
+                </Text>
+                <Text style={{ color: "white", fontSize: 18 }}>
+                  Artist: {viewValues.artist}
+                </Text>
+                <Text style={{ color: "white", fontSize: 18 }}>
+                  Song: {viewValues.title}
+                </Text>
+                <Text style={{ color: "white", fontSize: 18 }}>
+                  Rating: {viewValues.rating}
+                </Text>
               </Card.Content>
               <Button onPress={() => setVisibleView(false)}>Cancel</Button>
             </Card>
           </View>
         ) : (
-          totalRatings.map((subArray, index) => (
-            <View
-              key={index}
-              style={{ borderWidth: 1, borderColor: "black", margin: 5 }}
-            >
-              <Banner
-                visible={true}
-                actions={[
-                  {
-                    label: "View",
-                    onPress: () => {
-                      setVisibleView(true);
-                      setViewValues((prevState) => ({
-                        ...prevState,
-                        id: subArray[0],
-                        username: subArray[1],
-                        artist: subArray[3],
-                        title: subArray[2],
-                        rating: subArray[4],
-                      }));
-                    },
-                  },
-                  { label: "Update", onPress: () => true },
-                  { label: "Delete", onPress: () => true },
-                ]}
-                icon={({ size }) => (
-                  <Image
-                    source={bandTorso}
-                    style={{ width: 150, height: 150 }}
-                  />
-                )}
+          totalRatings
+            .slice()
+            .reverse()
+            .map((subArray, index) => (
+              <View
+                key={index}
+                style={{ borderWidth: 1, borderColor: "black", margin: 5 }}
               >
-                <Text>ID: {subArray[0]}</Text>
-                {"\n"}
-                <Text>User: {subArray[1]}</Text>
-                {"\n"}
+                <Banner
+                  visible={true}
+                  actions={
+                    username === subArray[1]
+                      ? [
+                          {
+                            label: "View",
+                            onPress: () => {
+                              setVisibleView(true);
+                              setViewValues((prevState) => ({
+                                ...prevState,
+                                id: subArray[0],
+                                username: subArray[1],
+                                artist: subArray[3],
+                                title: subArray[2],
+                                rating: subArray[4],
+                              }));
+                            },
+                          },
+                          { label: "Update", onPress: () => true },
+                          { label: "Delete", onPress: () => true },
+                        ]
+                      : [
+                          {
+                            label: "View",
+                            onPress: () => {
+                              setVisibleView(true);
+                              setViewValues((prevState) => ({
+                                ...prevState,
+                                id: subArray[0],
+                                username: subArray[1],
+                                artist: subArray[3],
+                                title: subArray[2],
+                                rating: subArray[4],
+                              }));
+                            },
+                          },
+                        ]
+                  }
+                  icon={({ size }) => (
+                    <Image
+                      source={bandTorso}
+                      style={{ width: 150, height: 150 }}
+                    />
+                  )}
+                >
+                  <Text>ID: {subArray[0]}</Text>
+                  {"\n"}
+                  <Text>User: {subArray[1]}</Text>
+                  {"\n"}
 
-                <Text>Artist: {subArray[3]}</Text>
-                {"\n"}
+                  <Text>Artist: {subArray[3]}</Text>
+                  {"\n"}
 
-                <Text>Song: {subArray[2]}</Text>
-                {"\n"}
+                  <Text>Song: {subArray[2]}</Text>
+                  {"\n"}
 
-                <Text>Rating: {subArray[4]}</Text>
-              </Banner>
-            </View>
-          ))
+                  <Text>Rating: {subArray[4]}</Text>
+                </Banner>
+              </View>
+            ))
         )}
       </View>
     </ScrollView>

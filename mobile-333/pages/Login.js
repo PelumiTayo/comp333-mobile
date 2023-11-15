@@ -38,7 +38,6 @@ export default function Login({ navigation }) {
       //successfully inputted into the DB
       if (data) {
         await SecureStore.setItemAsync("token", data);
-        const token = await SecureStore.getItemAsync("token");
         navigation.navigate("Ratings");
       }
       else{
