@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Image, ScrollView, Dimensions } from "react-native";
-import { Button, Card, Text, useTheme, Banner } from "react-native-paper";
+import { Button, Card, Text, useTheme, Banner, Dialog } from "react-native-paper";
+import * as SecureStore from "expo-secure-store";
+
 import image from "../assets/thebandshow.png";
 import bandTorso from "../assets/thebandtorso.png";
 import apiClient from "../services/apiClient";
@@ -21,7 +23,8 @@ export default function Ratings({ navigation }) {
   React.useEffect(() => {
     async function fetchRatings() {
       try {
-        const { data } = await apiClient.ratingG();
+        const jwt_token = await SecureStore.getItemAsync("jwt_token");
+        const { data } = await apiClient.ratingG({token:jwt_token});
         setTotalRatings(data);
       } catch (error) {
         console.error("Error fetching ratings:", error);
@@ -29,6 +32,31 @@ export default function Ratings({ navigation }) {
     }
     fetchRatings();
   }, []);
+
+  // TODO: Prevent users from going back to the home screen
+  //  React.useEffect(
+  //    () =>
+  //      navigation.addListener("beforeRemove", (e) => {
+  //        // Prevent default behavior of leaving the screen
+  //        e.preventDefault();
+
+  //        // Prompt the user before leaving the screen
+  //        Alert.alert(
+  //          "Logout?",
+  //          [
+  //            { text: "Don't leave", style: "cancel", onPress: () => {} },
+  //            {
+  //              text: "Discard",
+  //              style: "destructive",
+  //              // If the user confirmed, then we dispatch the action we blocked earlier
+  //              // This will continue the action that had triggered the removal of the screen
+  //              onPress: () => navigation.dispatch(e.data.action),
+  //            },
+  //          ]
+  //        );
+  //      }),
+  //    [navigation]
+  //  );
 
   return (
     <ScrollView>
