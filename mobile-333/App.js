@@ -27,7 +27,7 @@ export default function App() {
     <PaperProvider theme={theme}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Landing">
-          <Stack.Screen name="Landing" component={Landing} />
+          <Stack.Screen name="Landing" component={Landing} options={{headerTitle:"",headerTransparent:true, headerShadowVisible:false}}/>
           <Stack.Screen name="Register" component={SignUp} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Ratings" component={Ratings} />

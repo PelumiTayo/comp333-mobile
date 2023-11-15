@@ -77,6 +77,7 @@ export default function Login({ navigation }) {
         style={{
           width: "80%",
           marginTop: "10%",
+          marginBottom: "10%",
           alignItems: "flex-end",
         }}
       >
