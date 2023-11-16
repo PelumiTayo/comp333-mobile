@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, ScrollView } from "react-native";
+import { View, Image, ScrollView, Alert, BackHandler } from "react-native";
 import { Button, Card, Text, useTheme, Banner, Portal } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
 
@@ -59,6 +59,26 @@ export default function Ratings({ navigation }) {
 
     fetchRatings();
   }, [visible])
+
+  React.useEffect(() => {
+    navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      Alert.alert(
+        "Quit Application?",
+        "Are you sure you want to quit the application?",
+        [
+          { text: "Don't leave", style: "cancel", onPress: () => {} },
+          {
+            text: "Exit",
+            style: "destructive",
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: () => BackHandler.exitApp(),
+          },
+        ]
+      );
+    });
+  }, [navigation]);
 
   const onSubmit = async () => {
     setIsLoading(true);
