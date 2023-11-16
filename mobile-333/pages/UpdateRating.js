@@ -1,12 +1,13 @@
 import React from "react";
-import { View, ScrollView, Dimensions } from "react-native";
-import { Button, Text, useTheme, TextInput } from "react-native-paper";
+import { View, Text } from "react-native";
+import { Button, TextInput, useTheme, Portal } from "react-native-paper";
+import { object, string, number } from "yup";
 import * as SecureStore from "expo-secure-store";
 
-import { object, string, number } from "yup";
 import apiClient from "../services/apiClient";
+import ActivityPopup from "../components/ActivityPopup";
 
-const RatingSchema = object({
+const UpdateSchema = object({
   artist: string()
     .trim()
     .required("Artist is required")
@@ -26,26 +27,24 @@ const RatingSchema = object({
     .label("Rating"),
 });
 
-export default function Ratings({
-  viewValues,
-  setShowComponent,
-  setShowUpdate,
-}) {
+export default function UpdateRating({ route, navigation }) {
+  const { data } = route.params;
   const theme = useTheme();
-  const screenHeight = Dimensions.get("window").height;
   const [ratingInfo, setRatingInfo] = React.useState({
-    artist: viewValues.artist.toString(),
-    title: viewValues.title.toString(),
-    rating: viewValues.rating.toString(),
+    id: data[0],
+    username: data[1],
+    artist: data[2],
+    title: data[3],
+    rating: data[4],
   });
   const [errors, setErrors] = React.useState({});
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  const onSubmit = async () => {
     setErrors({});
-
+    setIsLoading(true);
     try {
-      result = RatingSchema.validateSync(
+      result = UpdateSchema.validateSync(
         { ...ratingInfo },
         { abortEarly: false }
       );
@@ -54,8 +53,8 @@ export default function Ratings({
       const jwt_token = await SecureStore.getItemAsync("token");
 
       const { data } = await apiClient.ratingPatch({
-        id: viewValues.id,
-        username: viewValues.username,
+        id: ratingInfo.id,
+        username: ratingInfo.username,
         artist: ratingInfo.artist,
         rating: ratingInfo.rating,
         title: ratingInfo.title,
@@ -63,8 +62,7 @@ export default function Ratings({
       });
       //successfully inputted into the DB
       if (data) {
-        setShowComponent(false);
-        setShowUpdate(false);
+        navigation.navigate("Main");
       } else {
         const field = "rating";
         setErrors((prev) => ({ ...prev, [field]: data }));
@@ -76,107 +74,93 @@ export default function Ratings({
         setErrors((prev) => ({ ...prev, [field]: errmsg }));
       }
     }
-  }
+    setIsLoading(false);
+  };
+
   return (
-    <ScrollView>
-      <View
-        style={{
-          backgroundColor: theme.colors.background,
-        }}
-      >
-        <View
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.backgroundColor,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Portal>
+        <ActivityPopup show={isLoading} />
+      </Portal>
+      <View style={{ width: "80%" }}>
+        <Text
           style={{
-            width: "80%",
-            marginTop: "10%",
-            alignSelf: "center",
-            marginBottom: "10%",
+            textAlign: "left",
+            fontSize: 25,
+            fontWeight: "bold",
+            marginBottom: 20,
           }}
         >
-          <Text
-            style={{
-              textAlign: "left",
-              fontSize: 25,
-              fontWeight: "bold",
-              marginBottom: 5,
-            }}
-          >
-            Update a Rating!
-          </Text>
-          <TextInput
-            disabled
-            style={{ width: "100%", margin: 10 }}
-            mode="outlined"
-            label="Username"
-            value={viewValues.username}
-          />
-
-          <TextInput
-            mode="outlined"
-            label="Artist"
-            style={{ width: "100%", margin: 10 }}
-            value={ratingInfo.artist}
-            onChangeText={(text) =>
-              setRatingInfo((prev) => ({ ...prev, artist: text }))
-            }
-          />
-          <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
-            {errors.artist}
-          </Text>
-          <TextInput
-            mode="outlined"
-            label="Song"
-            value={ratingInfo.title}
-            onChangeText={(text) =>
-              setRatingInfo((prev) => ({ ...prev, title: text }))
-            }
-            style={{ width: "100%", margin: 10 }}
-          />
-          <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
-            {errors.title}
-          </Text>
-          <TextInput
-            mode="outlined"
-            defaultValue={ratingInfo.rating.toString()} // Convert to string if ratingInfo.rating is a number
-            label="Rating"
-            value={ratingInfo.rating}
-            onChangeText={(text) =>
-              setRatingInfo((prev) => ({ ...prev, rating: text }))
-            }
-            maxLength={2}
-            keyboardType="numeric"
-            returnKeyType="done" // You might want to use "done" for the return key
-            style={{ width: "100%", margin: 10 }}
-          />
-          <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
-            {errors.rating}
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-around",
-              marginTop: 20,
-            }}
-          >
+          Update a Rating!
+        </Text>
+        <TextInput disabled mode="outlined" label="Username" value={data[1]} />
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}></Text>
+        <TextInput
+          mode="outlined"
+          label="Artist"
+          value={ratingInfo.artist}
+          error={errors.artist}
+          onChangeText={(text) =>
+            setRatingInfo((prev) => ({ ...prev, artist: text }))
+          }
+        />
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
+          {errors.artist}
+        </Text>
+        <TextInput
+          mode="outlined"
+          label="Song"
+          value={ratingInfo.title}
+          error={errors.title}
+          onChangeText={(text) =>
+            setRatingInfo((prev) => ({ ...prev, title: text }))
+          }
+        />
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
+          {errors.title}
+        </Text>
+        <TextInput
+          mode="outlined"
+          defaultValue={ratingInfo.rating.toString()} // Convert to string if ratingInfo.rating is a number
+          label="Rating"
+          error={errors.rating}
+          //   value={ratingInfo.rating}
+          onChangeText={(text) =>
+            setRatingInfo((prev) => ({ ...prev, rating: text }))
+          }
+          maxLength={2}
+          keyboardType="numeric"
+          returnKeyType="done" // You might want to use "done" for the return key
+        />
+        <Text style={{ fontSize: 13, color: "red", textAlign: "right" }}>
+          {errors.rating}
+        </Text>
+        <View style={{flexDirection:"row"}}>
             <Button
-              onPress={(e) => handleSubmit(e)}
-              style={{ width: "45%" }}
+              disabled={isLoading}
+              onPress={() => navigation.navigate("Main")}
+              style={{ margin:5, flex:1 }}
+              mode="outlined"
+            >
+              Back
+            </Button>
+            <Button
+              disabled={isLoading}
+              onPress={onSubmit}
+              style={{ margin:5, flex:1 }}
               mode="contained"
             >
               Update Rating
             </Button>
-            <Button
-              onPress={() => {
-                setShowComponent(false);
-                setShowUpdate(false);
-              }}
-              style={{ width: "45%" }}
-              mode="contained"
-            >
-              Cancel
-            </Button>
-          </View>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
