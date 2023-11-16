@@ -80,6 +80,6 @@ class ApiClient {
     });
   }
 }
-const apiClientInstance = new ApiClient("http://172.21.1.101");
+const apiClientInstance = new ApiClient("https://sonicscore.onrender.com");
 
 export default apiClientInstance;

@@ -6,7 +6,7 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { ActivityIndicator, Button, TextInput, useTheme } from "react-native-paper";
+import { Button, TextInput, useTheme } from "react-native-paper";
 import { object, string } from "yup";
 import * as SecureStore from "expo-secure-store";
 
