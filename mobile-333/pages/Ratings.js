@@ -12,11 +12,15 @@ import apiClient from "../services/apiClient";
 //true if user is on Ratings screem, false if not.
 import { useIsFocused } from "@react-navigation/native";
 
+import Update from "./UpdateRating";
+
 export default function Ratings({ navigation }) {
   const theme = useTheme();
   const isFocused = useIsFocused();
   const [totalRatings, setTotalRatings] = React.useState([]);
-  const [visibleView, setVisibleView] = React.useState(false);
+  const [showComponent, setShowComponent] = React.useState(false);
+  const [showView, setShowView] = React.useState(false);
+  const [showUpdate, setShowUpdate] = React.useState(false);
   const [username, setUsername] = React.useState("");
   const [viewValues, setViewValues] = React.useState({
     id: 0,
@@ -37,7 +41,6 @@ export default function Ratings({ navigation }) {
         console.error("Error fetching ratings:", error);
       }
     }
-    fetchRatings();
 
     async function fetchUsername() {
       try {
@@ -51,7 +54,8 @@ export default function Ratings({ navigation }) {
       }
     }
     fetchUsername();
-  }, [isFocused === true]);
+    fetchRatings();
+  }, [isFocused === true, showComponent === false]);
 
   return (
     <ScrollView>
@@ -78,7 +82,53 @@ export default function Ratings({ navigation }) {
             <Image source={image} />
           </Card.Content>
         </Card>
-        <Button
+        {showComponent ? (
+          <>
+        
+            {showView && (
+              <View style={{ alignItems: "center" }}>
+                <Card
+                  style={{
+                    backgroundColor: "#A6B9FF",
+                    margin: 40,
+                    width: 300,
+                    height: 200,
+                    alignItems: "center",
+                  }}
+                >
+                  <Card.Content>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                      ID: {viewValues.id}
+                    </Text>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                      User: {viewValues.username}
+                    </Text>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                      Artist: {viewValues.artist}
+                    </Text>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                      Song: {viewValues.title}
+                    </Text>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                      Rating: {viewValues.rating}
+                    </Text>
+                  </Card.Content>
+                  <Button
+                    onPress={() => {
+                      setShowComponent(false);
+                      setShowView(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Card>
+              </View>
+            )}
+            {showUpdate && <Update viewValues={viewValues} setShowComponent={setShowComponent} setShowUpdate={setShowUpdate} />}
+          </>
+        ) : (
+          <>
+          <Button
           style={{
             backgroundColor: "#A6B9FF",
             margin: 10,
@@ -89,39 +139,7 @@ export default function Ratings({ navigation }) {
         >
           Add a Rating!
         </Button>
-        {visibleView ? (
-          <View style={{ alignItems: "center" }}>
-            <Card
-              style={{
-                backgroundColor: "#A6B9FF",
-                margin: 40,
-                width: 300,
-                height: 200,
-                alignItems: "center",
-              }}
-            >
-              <Card.Content>
-                <Text style={{ color: "white", fontSize: 18 }}>
-                  ID: {viewValues.id}
-                </Text>
-                <Text style={{ color: "white", fontSize: 18 }}>
-                  User: {viewValues.username}
-                </Text>
-                <Text style={{ color: "white", fontSize: 18 }}>
-                  Artist: {viewValues.artist}
-                </Text>
-                <Text style={{ color: "white", fontSize: 18 }}>
-                  Song: {viewValues.title}
-                </Text>
-                <Text style={{ color: "white", fontSize: 18 }}>
-                  Rating: {viewValues.rating}
-                </Text>
-              </Card.Content>
-              <Button onPress={() => setVisibleView(false)}>Cancel</Button>
-            </Card>
-          </View>
-        ) : (
-          totalRatings
+          {totalRatings
             .slice()
             .reverse()
             .map((subArray, index) => (
@@ -137,7 +155,8 @@ export default function Ratings({ navigation }) {
                           {
                             label: "View",
                             onPress: () => {
-                              setVisibleView(true);
+                              setShowComponent(true);
+                              setShowView(true);
                               setViewValues((prevState) => ({
                                 ...prevState,
                                 id: subArray[0],
@@ -148,14 +167,28 @@ export default function Ratings({ navigation }) {
                               }));
                             },
                           },
-                          { label: "Update", onPress: () => true },
+                          {
+                            label: "Update",
+                            onPress: () => {
+                              setShowComponent(true);
+                              setShowUpdate(true);
+                              setViewValues((prevState) => ({
+                                ...prevState,
+                                id: subArray[0],
+                                username: subArray[1],
+                                artist: subArray[3],
+                                title: subArray[2],
+                                rating: subArray[4],
+                              }));
+                            },
+                          },
                           { label: "Delete", onPress: () => true },
                         ]
                       : [
                           {
                             label: "View",
                             onPress: () => {
-                              setVisibleView(true);
+                              setShowComponent(true);
                               setViewValues((prevState) => ({
                                 ...prevState,
                                 id: subArray[0],
@@ -189,7 +222,8 @@ export default function Ratings({ navigation }) {
                   <Text>Rating: {subArray[4]}</Text>
                 </Banner>
               </View>
-            ))
+            ))}
+        </>
         )}
       </View>
     </ScrollView>
