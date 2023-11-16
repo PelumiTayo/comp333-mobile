@@ -43,10 +43,12 @@ export default function SignUp({ navigation }) {
   const [errors, setErrors] = useState({});
   const [hidePassword, setHidePassword] = useState(true);
   const [hidePasswordConfirm, setHidePasswordConfirm] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   //deals with processing information and saving information if valid in the backend/database
   async function onSubmit() {
     setErrors({});
+    setIsLoading(true);
     try {
       result = await userSchema.validateSync(
         { ...userInfo, confirmpassword: confirmPassword },
@@ -60,9 +62,8 @@ export default function SignUp({ navigation }) {
       const { data } = await apiClient.register(formData);
       console.log(data, "data in register")
       //successfully inputted into the DB
-      if (data) {
-        await SecureStore.setItemAsync("token", data);
-        navigation.navigate("Ratings");
+      if (data === 1) {
+        navigation.navigate("Login");
       }
       else{
         const field = "confirmpassword";
@@ -74,6 +75,7 @@ export default function SignUp({ navigation }) {
         setErrors((prev) => ({ ...prev, [field]: errmsg }));
       }
     }
+    setIsLoading(false);
   }
 
   return (
@@ -187,8 +189,10 @@ export default function SignUp({ navigation }) {
 
           <Button
             style={{ width: "50%", margin: 5, marginTop: 10 }}
+            loading={isLoading}
             mode="contained"
             onPress={onSubmit}
+            disabled={isLoading}
           >
             <Text style={{ color: "white", fontWeight: "bold" }}>Sign Up</Text>
           </Button>
