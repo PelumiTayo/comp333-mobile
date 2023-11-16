@@ -10,7 +10,7 @@ import SignUp from "./pages/SignUp";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Ratings from "./pages/Ratings";
-import AddRating from "./pages/AddRating";
+import AddRating from './pages/AddRating';
 
 //routing is done using the stack data structure
 const Stack = createNativeStackNavigator();
@@ -29,6 +29,7 @@ function RatingsTabNavigator() {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={Ratings} />
+      <Tab.Screen name="Add Rating" component={AddRating} />
     </Tab.Navigator>
   );
 }
