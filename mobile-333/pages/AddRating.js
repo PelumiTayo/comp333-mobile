@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Image, ScrollView, Dimensions } from "react-native";
-import { Button, Card, Text, useTheme, TextInput } from "react-native-paper";
+import { Button, Card, Text, useTheme, TextInput, ActivityIndicator, Portal } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
 
 //used to decode the payload in token
@@ -9,6 +9,7 @@ import jwtDecode from "jwt-decode";
 import bandviolin from "../assets/bandviolin.png";
 import { object, string, number } from "yup";
 import apiClient from "../services/apiClient";
+import ActivityPopup from "../components/ActivityPopup";
 
 const RatingSchema = object({
   artist: string()
@@ -40,6 +41,7 @@ export default function Ratings({ navigation }) {
     rating: "1",
   });
   const [errors, setErrors] = React.useState({});
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
     async function fetchToken() {
@@ -55,11 +57,11 @@ export default function Ratings({ navigation }) {
     }
     fetchToken();
   }, []);
-  console.log(ratingInfo);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErrors({});
+    setIsLoading(true);
 
     try {
       result = RatingSchema.validateSync(
@@ -80,11 +82,12 @@ export default function Ratings({ navigation }) {
       const { data } = await apiClient.ratingP(formData);
       //successfully inputted into the DB
       if (data) {
-        navigation.navigate('Ratings');
+        navigation.navigate('Home');
       } else {
         const field = "rating";
         setErrors((prev) => ({ ...prev, [field]: data }));
       }
+      //error handling
     } catch (err) {
       for (e of err.inner) {
         let field = e.path;
@@ -92,11 +95,13 @@ export default function Ratings({ navigation }) {
         setErrors((prev) => ({ ...prev, [field]: errmsg }));
       }
     }
-
-    //error handling
+    setIsLoading(false);
   }
   return (
     <ScrollView>
+      <Portal>
+        <ActivityPopup show={isLoading} />
+      </Portal>
       <View
         style={{
           backgroundColor: theme.colors.background,
@@ -190,6 +195,7 @@ export default function Ratings({ navigation }) {
             onPress={(e) => handleSubmit(e)}
             style={{ width: "50%" }}
             mode="contained"
+            disabled={isLoading}
           >
             Add Rating
           </Button>
